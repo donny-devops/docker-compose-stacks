@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-yaml:
+    name: Lint YAML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint all YAML files
+        run: |
+          yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}" \
+            $(find . -name '*.yml' -o -name '*.yaml' | grep -v node_modules | grep -v .git)
+
+  validate-stacks:
+    name: Validate Docker Compose stacks
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack:
+          - homelab-dashboard
+          - monitoring-analytics
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate ${{ matrix.stack }} compose file
+        working-directory: ${{ matrix.stack }}
+        run: docker compose config --quiet
+
+  trivy-scan:
+    name: Trivy config scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy misconfiguration scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '0'
+          format: table
