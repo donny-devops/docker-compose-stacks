@@ -54,3 +54,4 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '0'
           format: table
+
