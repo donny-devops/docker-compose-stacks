@@ -21,8 +21,9 @@ jobs:
 
       - name: Lint all YAML files
         run: |
-          yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}" \
-            $(find . -name '*.yml' -o -name '*.yaml' | grep -v node_modules | grep -v .git)
+          find . -type f \( -name '*.yml' -o -name '*.yaml' \) \
+            -not -path './.git/*' -not -path '*/node_modules/*' -print0 \
+            | xargs -0 yamllint -d "{extends: relaxed, rules: {line-length: {max: 200}}}"
 
   validate-stacks:
     name: Validate Docker Compose stacks
@@ -54,4 +55,3 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '0'
           format: table
-

@@ -1,0 +1,26 @@
+name: KICS Code Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kics:
+    name: Scan Docker Compose for misconfigurations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Informational (non-blocking), matching the repo's Trivy config scan.
+      - name: Run KICS
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/path" \
+            checkmarx/kics:latest scan -p /path -t DockerCompose \
+            --no-progress --no-color || true
