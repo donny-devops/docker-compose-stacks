@@ -1,0 +1,10 @@
+{
+  "name": "granola-engineer",
+  "description": "Engineering workflows over Granola meeting notes: action items to tasks, meeting-to-spec, standups, and decision logs.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Adonis Jimenez"
+  },
+  "homepage": "https://github.com/donny-devops/docker-compose-stacks/tree/main/granola-engineer",
+  "license": "MIT"
+}
