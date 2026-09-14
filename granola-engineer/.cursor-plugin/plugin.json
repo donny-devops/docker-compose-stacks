@@ -1,0 +1,10 @@
+{
+  "name": "granola-engineer",
+  "description": "Turn Granola meeting notes into engineering artifacts — action items and decisions into tasks, specs, standups, and ADRs — using the Granola MCP server.",
+  "version": "0.1.0",
+  "mcpServers": "../.cursor-mcp.json",
+  "author": {
+    "name": "Adonis Jimenez"
+  },
+  "skills": "./skills/"
+}
