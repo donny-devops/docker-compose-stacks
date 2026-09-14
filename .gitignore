@@ -26,3 +26,6 @@ Thumbs.db
 
 # Override files (local customizations)
 docker-compose.override.yml
+
+# Security scan reports (generated in CI, uploaded to the Security tab)
+*.sarif
