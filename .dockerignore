@@ -1,0 +1,11 @@
+.git
+.github
+.cursor
+**/.env
+**/.env.local
+**/.env.*.local
+*.sarif
+*.log
+data/
+volumes/
+node_modules/

@@ -1,0 +1,70 @@
+name: Gist Summary
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gist-summary:
+    name: Publish stack inventory to a Gist
+    runs-on: ubuntu-latest
+    env:
+      GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      GIST_ID: ${{ vars.GIST_ID }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ -n "$GIST_TOKEN" ] && [ -n "$GIST_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GIST_TOKEN secret and/or GIST_ID variable not set; skipping publish."
+          fi
+
+      - name: Build inventory summary
+        if: steps.cfg.outputs.ready == 'true'
+        run: |
+          {
+            echo "# Docker Compose Stacks — Inventory"
+            echo
+            echo "_Updated: $(date -u '+%Y-%m-%d %H:%M UTC') from ${GITHUB_SHA:0:7}_"
+            echo
+            for f in ./*/docker-compose.yml; do
+              stack=$(dirname "$f")
+              echo "## ${stack#./}"
+              echo
+              echo '| Service | Image |'
+              echo '| --- | --- |'
+              awk '
+                /^  [a-zA-Z0-9_-]+:/ { svc=$1; sub(":","",svc) }
+                /^[[:space:]]*image:[[:space:]]*/ { printf "| %s | %s |\n", svc, $2 }
+              ' "$f"
+              echo
+            done
+            echo "## Workflows"
+            echo
+            for w in .github/workflows/*.yml; do
+              echo "- $(basename "$w")"
+            done
+          } > summary.md
+          cat summary.md
+
+      - name: Publish to Gist
+        if: steps.cfg.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: |
+          jq -n --arg content "$(cat summary.md)" \
+            '{files: {"stacks-inventory.md": {content: $content}}}' > payload.json
+          gh api -X PATCH "/gists/$GIST_ID" --input payload.json >/dev/null
+          echo "Updated gist $GIST_ID"
